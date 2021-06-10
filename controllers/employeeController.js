@@ -202,18 +202,3 @@ exports.resetPassword = (req, res) => {
     });
   });
 };
-
-exports.logOut = (req, res) => {
-  const token = req.body.token;
-  console.log(token);
-  ActiveSession.deleteMany({ token }, function (err, item) {
-    if (err) {
-      res.json({ success: false });
-    }
-    res.json({ success: true });
-  });
-};
-
-exports.checkSession = (req, res) => {
-  res.json({ success: true });
-};
