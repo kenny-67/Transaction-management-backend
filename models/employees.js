@@ -32,6 +32,10 @@ const EmployeeSchema = new mongoose.Schema({
     ref: "Warehouse",
     required: true,
   },
+  accountType: {
+    type: String,
+
+  },
   accountConfirmation: {
     type: Boolean,
     default: false,

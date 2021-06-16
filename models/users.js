@@ -13,6 +13,7 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
   },
   password: {
     type: String,
@@ -21,6 +22,20 @@ const UserSchema = new mongoose.Schema({
   phoneNumber: {
     type: String,
     required: true,
+  },
+  userType: {
+    type: String,
+    enum: { 
+      values: ['Store Employee', 'Warehouse Employee'], 
+      message: '{VALUE} is not supported' },
+  },
+  storeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Store",
+  },
+  warehouseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Warehouse",
   },
   accountConfirmation: {
     type: Boolean,

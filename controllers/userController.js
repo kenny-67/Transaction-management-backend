@@ -22,7 +22,7 @@ exports.getAllUsers = (req, res) => {
 };
 
 exports.register = (req, res) => {
-  const { firstName, lastName, email, password, phoneNumber } = req.body;
+  const { firstName, lastName, email, password, phoneNumber, userType, storeId, warehouseId } = req.body;
 
   if (!firstName || !lastName || !email || !password || !phoneNumber) {
     res.json({
@@ -48,11 +48,18 @@ exports.register = (req, res) => {
             lastName,
             email,
             phoneNumber,
+            userType,
+            storeId,
+            warehouseId,
             password: hash,
             _id: new mongoose.Types.ObjectId(),
           };
           User.create(query, function (err, user) {
-            if (err) throw err;
+            if (err) {
+              return res.status(400).json({
+                error: err
+              })
+            };
             res.json({
               success: true,
               userID: user._id,
