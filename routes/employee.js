@@ -2,14 +2,13 @@ const express = require("express");
 const router = express.Router();
 const checkAuth = require("../config/checkAuth").checkAuth;
 
-// const {
-//   createStore,
-//   getAllStore,
-//   getStore,
-// } = require("../controllers/storeController");
+const {
+  getAllEmployees,
+  getEmployee,
+} = require("../controllers/employeeController");
 
-// router.post("/create", checkAuth, createStore);
-// router.get("/", checkAuth, getAllStore);
-// router.get("/:id", checkAuth, getStore);
+
+router.get("/", checkAuth, getAllEmployees);
+router.get("/:id", checkAuth, getEmployee);
 
 module.exports = router;
