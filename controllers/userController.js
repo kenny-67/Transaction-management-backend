@@ -22,10 +22,19 @@ exports.getAllUsers = (req, res) => {
 };
 
 exports.register = (req, res) => {
-  const { firstName, lastName, email, password, phoneNumber, userType, storeId, warehouseId } = req.body;
+  const {
+    firstName,
+    lastName,
+    email,
+    password,
+    phoneNumber,
+    userType,
+    storeId,
+    warehouseId,
+  } = req.body;
 
   if (!firstName || !lastName || !email || !password || !phoneNumber) {
-    res.json({
+    res.status(400).json({
       success: false,
       msg: "All fields are required",
     });
@@ -57,9 +66,9 @@ exports.register = (req, res) => {
           User.create(query, function (err, user) {
             if (err) {
               return res.status(400).json({
-                error: err
-              })
-            };
+                error: err,
+              });
+            }
             res.json({
               success: true,
               userID: user._id,
@@ -81,8 +90,6 @@ exports.login = (req, res) => {
       message: "Email and Password is required",
     });
   }
-
-  console.log(email, password);
 
   User.findOne({ email: email }, (err, user) => {
     if (err) throw err;
@@ -107,10 +114,17 @@ exports.login = (req, res) => {
         );
         // Don't include the password in the returned user object
         const query = { userId: user._id, token: "JWT " + token };
+        const userResponse = {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isAdmin: user.isAdmin,
+          email: user.email,
+        };
         ActiveSession.create(query, function (err, cd) {
           return res.json({
             success: true,
             token: "JWT " + token,
+            user: userResponse,
           });
         });
       } else {
@@ -122,14 +136,18 @@ exports.login = (req, res) => {
 
 exports.getUser = (req, res) => {
   const userId = req.params.id;
-  User.find({ _id: userId }, "firstName lastName email", (err, user) => {
-    if (err) {
-      console.log(err);
-      return res.json({ success: false, error: err });
-    }
+  User.find(
+    { _id: userId },
+    "firstName lastName email isAdmin",
+    (err, user) => {
+      if (err) {
+        console.log(err);
+        return res.json({ success: false, error: err });
+      }
 
-    return res.json({ success: true, user: user[0] });
-  });
+      return res.json({ success: true, user: user[0] });
+    }
+  );
 };
 
 exports.confirmEmail = (req, res) => {
