@@ -8,11 +8,13 @@ const productSchema = mongoose.Schema({
   originalPrice: { type: Number, required: true },
   sellingPrice: { type: Number, required: true },
   dateOfPurchase: { type: Date, required: false },
-  // warehouse: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "Warehouse",
-  //   required: true,
-  // },
+  store: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Store",
+    required: true,
+  },
+  createdAt: { type: Date, required: true },
+  updatedAt: { type: Date, required: true },
 });
 
 module.exports = mongoose.model("Product", productSchema);

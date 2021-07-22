@@ -29,15 +29,25 @@ exports.register = (req, res) => {
     password,
     phoneNumber,
     userType,
-    storeId,
+    storeName,
     warehouseId,
   } = req.body;
+  console.log(req.body);
 
   if (!firstName || !lastName || !email || !password || !phoneNumber) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       msg: "All fields are required",
     });
+  }
+
+  if (userType === "Store Employee") {
+    if (!storeName) {
+      return res.status(400).json({
+        success: false,
+        msg: "All fields ..  are required",
+      });
+    }
   }
 
   User.findOne({ email }).then((user) => {
@@ -58,11 +68,13 @@ exports.register = (req, res) => {
             email,
             phoneNumber,
             userType,
-            storeId,
+            storeName,
             warehouseId,
             password: hash,
             _id: new mongoose.Types.ObjectId(),
           };
+
+          console.log(query);
           User.create(query, function (err, user) {
             if (err) {
               return res.status(400).json({
@@ -109,7 +121,7 @@ exports.login = (req, res) => {
           { id: user._id, email: user.email, isAdmin: user.isAdmin },
           "somerandomkey1245",
           {
-            expiresIn: 3600,
+            expiresIn: "3d",
           }
         );
         // Don't include the password in the returned user object

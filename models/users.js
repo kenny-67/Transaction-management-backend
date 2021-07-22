@@ -25,12 +25,13 @@ const UserSchema = new mongoose.Schema({
   },
   userType: {
     type: String,
-    enum: { 
-      values: ['Store Employee', 'Warehouse Employee'], 
-      message: '{VALUE} is not supported' },
+    enum: {
+      values: ["Store Employee", "Warehouse Employee"],
+      message: "{VALUE} is not supported",
+    },
   },
-  storeId: {
-    type: mongoose.Schema.Types.ObjectId,
+  storeName: {
+    type: String,
     ref: "Store",
   },
   warehouseId: {

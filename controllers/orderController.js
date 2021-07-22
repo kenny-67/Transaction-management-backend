@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const Product = require("../models/product");
 const User = require("../models/users");
 const Order = require("../models/order");
-const PendingOrder = require("../models/pendingOrders");
 
 const {
   generatepaymentlink,
@@ -61,7 +60,7 @@ exports.createOrder = async (req, res) => {
   }
 
   const orderInfo = {
-    _id: new mongoose.Types.ObjectId(),
+    _id: orderId,
     userId: id,
     total,
     amountPaid: 0,
@@ -120,11 +119,6 @@ exports.confirmPayment = async (req, res) => {
   console.log(flutterData);
   const { frontendRedirectURL, userId, orderId } = flutterData.meta;
 
-  console.log(
-    "======================>",
-    frontendRedirectURL,
-    "<==============="
-  );
   const amountPaid = flutterData.amount_settled;
 
   //update order
@@ -146,7 +140,11 @@ exports.confirmPayment = async (req, res) => {
 };
 
 exports.getOrders = async (req, res) => {
-  const { status } = req.query;
+  const { status, page = 0, limit = 20 } = req.query;
+
+  const modelPage = page == 0 ? page : +page - 1;
+  const previousPage = modelPage == 0 ? null : page - 1;
+  const currentPage = +modelPage + 1;
 
   let query = {};
   if (status && status.length > 0) {
@@ -158,11 +156,25 @@ exports.getOrders = async (req, res) => {
   const order = await Order.find(
     query,
     "_id userId total amountPaid status date"
-  );
+  )
+    .sort({ date: "desc" })
+    .skip(modelPage * limit)
+    .limit(limit);
+
+  orderCount = await Order.find().countDocuments();
+
+  const nextPage =
+    Math.ceil(orderCount / limit) - currentPage > 0 ? +currentPage + 1 : null;
 
   return res.status(200).json({
     success: true,
     order,
+    paginatonData: {
+      currentPage,
+      nextPage,
+      previousPage,
+      orderCount,
+    },
   });
 };
 
@@ -171,7 +183,7 @@ exports.getOrder = async (req, res) => {
   const order = await Order.find(
     { _id: id },
     "_id userId total amountPaid orderDetails status date"
-  );
+  ).sort({ date: "desc" });
 
   return res.status(200).json({
     success: true,

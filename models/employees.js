@@ -23,7 +23,7 @@ const EmployeeSchema = new mongoose.Schema({
     required: true,
   },
   storeName: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "Store",
     required: true,
   },
@@ -34,7 +34,6 @@ const EmployeeSchema = new mongoose.Schema({
   },
   accountType: {
     type: String,
-
   },
   accountConfirmation: {
     type: Boolean,
