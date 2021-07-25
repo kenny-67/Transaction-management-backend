@@ -6,6 +6,7 @@ const uuidGenerator = uuid.v4;
 const generatepaymentlink = async (paymentInfo, callbackURL, redirectURL) => {
   const {
     amount,
+    totalAmount,
     email,
     phonenumber,
     name,
@@ -19,6 +20,7 @@ const generatepaymentlink = async (paymentInfo, callbackURL, redirectURL) => {
     const requestBody = {
       tx_ref: transactionReference,
       amount,
+      totalAmount,
       currency,
       payment_options: "ussd,card",
       country: "NG",

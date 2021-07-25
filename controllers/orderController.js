@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const Product = require("../models/product");
 const User = require("../models/users");
 const Order = require("../models/order");
+const Debtors = require("../models/debtors");
 
 const {
   generatepaymentlink,
@@ -9,9 +9,84 @@ const {
 } = require("../config/paymentServices");
 
 exports.createOrder = async (req, res) => {
-  const { orderDetails, total, redirectURL } = req.body;
-  console.log(redirectURL);
+  const {
+    orderDetails,
+    total,
+    redirectURL,
+    amountPaid,
+    customerDetail,
+    orderType,
+  } = req.body;
+  console.log(
+    orderDetails,
+    total,
+    redirectURL,
+    amountPaid,
+    customerDetail,
+    orderType
+  );
   const { id } = req.userData;
+
+  const orderId = new mongoose.Types.ObjectId();
+
+  if (orderType === "CASH") {
+    console.log("handling cash order");
+    if (!orderDetails && !total && !total) {
+      return res.status(400).json({
+        success: false,
+        message: "One or more required details are missing",
+      });
+    }
+
+    if (customerDetail && amountPaid < total) {
+      //add to debtor
+      const obj = {
+        _id: new mongoose.Types.ObjectId(),
+        firstName: customerDetail.firstName,
+        lastName: customerDetail.lastName,
+        phoneNumber: customerDetail.phoneNumber,
+        email: customerDetail.email,
+        address: customerDetail.address,
+        orderStatus: "Completed",
+        orderId,
+        amountOwed: total - amountPaid,
+      };
+
+      console.log(obj);
+
+      const debtor = await Debtors.create(obj);
+      if (!debtor) {
+        return res.status(400).json({
+          success: false,
+          message: "could not add debtor to database",
+        });
+      }
+    }
+
+    const orderInfo = {
+      _id: orderId,
+      userId: id,
+      total,
+      amountPaid,
+      orderDetails,
+      status: "Completed",
+    };
+
+    //create order
+    const createdOrder = await Order.create(orderInfo);
+
+    if (!createdOrder) {
+      return res.status(500).json({
+        success: false,
+        error: "Could not create pending order, please try again",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Order created successfully",
+    });
+  }
 
   if (!orderDetails && !total && !redirectURL) {
     return res.status(400).json({
@@ -26,11 +101,10 @@ exports.createOrder = async (req, res) => {
 
   const callbackURL = `${req.protocol}://${req.headers.host}/api/order/confirm`;
 
-  const orderId = new mongoose.Types.ObjectId();
-
   //pay for order
   const paymentArgs = {
-    amount: +total,
+    amount: +amountPaid,
+    totalAmount: +total,
     email: user[0].email,
     userId: id,
     name,
@@ -78,6 +152,69 @@ exports.createOrder = async (req, res) => {
     });
   }
 
+  if (customerDetail && amountPaid < total) {
+    //add to debtor
+    const obj = {
+      _id: new mongoose.Types.ObjectId(),
+      firstName: customerDetail.firstName,
+      lastName: customerDetail.lastName,
+      phoneNumber: customerDetail.phoneNumber,
+      email: customerDetail.email,
+      address: customerDetail.address,
+      orderStatus: "Pending",
+      orderId,
+      amountOwed: total - amountPaid,
+    };
+
+    const debtor = await Debtors.create(obj);
+    if (!debtor) {
+      return res.status(400).json({
+        success: false,
+        message: "could not add debtor to database",
+      });
+    }
+  }
+
+  return res.status(201).json({
+    success: true,
+    message: response,
+  });
+};
+
+exports.createCashOrder = async (req, res) => {
+  const { debtorsInfo, orderDetails, total, amountPaidByCustomer } = req.body;
+  const { id } = req.userData;
+
+  const orderId = new mongoose.Types.ObjectId();
+
+  if (!orderDetails && !total && !amountPaidByCustomer) {
+    return res.status(400).json({
+      success: false,
+      message: "One or more required details are missing",
+    });
+  }
+
+  if (debtorsInfo) {
+    const orderInfo = {
+      _id: orderId,
+      userId: id,
+      total,
+      amountPaid: amountPaidByCustomer,
+      orderDetails,
+      status: "Completed",
+    };
+
+    //create order
+    const createdOrder = await Order.create(orderInfo);
+
+    if (!createdOrder) {
+      return res.status(500).json({
+        success: false,
+        error: "Could not create pending order, please try again",
+      });
+    }
+  }
+
   return res.status(201).json({
     success: true,
     message: response,
@@ -119,11 +256,18 @@ exports.confirmPayment = async (req, res) => {
   console.log(flutterData);
   const { frontendRedirectURL, userId, orderId } = flutterData.meta;
 
-  const amountPaid = flutterData.amount_settled;
+  const amountPaid = flutterData.amount_settled + flutterData.app_fee;
 
   //update order
   const newvalues = { $set: { status: "Completed", amountPaid } };
   const updateOrder = await Order.updateOne({ _id: orderId }, newvalues);
+
+  await Debtors.updateOne(
+    {
+      orderId,
+    },
+    { orderStatus: "Completed" }
+  );
 
   if (!updateOrder) {
     return res.status(500).json({
@@ -131,11 +275,6 @@ exports.confirmPayment = async (req, res) => {
       message: "Error updating the order",
     });
   }
-
-  const orderEntry = await Order.findOne({ _id: orderId });
-  console.log(orderEntry);
-
-  const message = "Successfully verified transaction";
   return res.redirect(`${frontendRedirectURL}`);
 };
 

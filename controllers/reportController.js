@@ -61,45 +61,41 @@ exports.productReport = async (req, res) => {
 
     const checkDuplicate = (array, obj) => {
       let i;
-      let searchResult = false;
       for (i = 0; i < array.length; i++) {
-        console.log(array[i].productName, obj.productName);
-        if (array[i].productId == obj.productId) {
-          console.log("from loop found");
-          searchResult = true;
-          break;
+        if (array[i].productName == obj.productName) {
+          return true;
         }
       }
-      if (searchResult) {
-        return true;
-      } else {
-        return false;
-      }
+      return false;
     };
 
-    //get best selling products
-    let best = [
-      {
-        productName: "dummy",
-        productId: "123",
-        quamtity: 12,
-      },
-    ];
-    await productSold.forEach(async (product) => {
-      console.log(product.productId);
-      // // console.log("before search==================>", product);
+    const updateObjects = (objects, product) => {
+      return objects.map((object) => {
+        // console.log(object.quantity, product.quantity);
+        object.quantity += +product.quantity;
+        object.price += +product.price;
+        return object;
+      });
+    };
 
+    let best = [];
+
+    await productSold.forEach(async (product) => {
       //check if the product exist
       const isExist = await checkDuplicate(best, product);
-      if (isExist) {
-        console.log("found");
-      } else {
-        console.log(isExist, "notFound");
+
+      console.log(isExist);
+
+      if (!checkDuplicate(best, product)) {
+        console.log(false);
         best.push(product);
+      } else {
+        console.log(true);
+        best = updateObjects(best, product);
       }
     });
 
-    data.productSold = orders.length;
+    data.totalProductsSold = orders.length;
     data.bestSelling = best;
     data.revenue = total;
     data.product = products;

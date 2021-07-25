@@ -17,8 +17,8 @@ const productRoutes = require("./routes/product");
 const employeeRoutes = require("./routes/employee");
 const orderRoutes = require("./routes/order");
 const reportRoutes = require("./routes/report");
-// const dashboardRoutes = require("./routes/dashboard");
 const dashboardRoutes = require("./routes/dashboard");
+const debtRoutes = require("./routes/debt");
 
 // Connect to MongoDB
 mongoose
@@ -54,7 +54,7 @@ app.use("/api/employee", employeeRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/report", reportRoutes);
-// app.use("./api/dashboard", dashboardRoutes);
+app.use("/api/debtor", debtRoutes);
 
 //Error handling
 app.use((req, res, next) => {
