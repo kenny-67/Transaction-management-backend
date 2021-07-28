@@ -300,19 +300,22 @@ exports.getOrders = async (req, res) => {
     .skip(modelPage * limit)
     .limit(limit);
 
-  orderCount = await Order.find().countDocuments();
+  let orderCount = await Order.find().countDocuments();
 
   const nextPage =
     Math.ceil(orderCount / limit) - currentPage > 0 ? +currentPage + 1 : null;
 
+  const totalPages = Math.round(orderCount / 20);
+
   return res.status(200).json({
     success: true,
-    order,
-    paginatonData: {
+    data: order,
+    paginationData: {
       currentPage,
       nextPage,
       previousPage,
-      orderCount,
+      itemCount: orderCount,
+      totalPages,
     },
   });
 };

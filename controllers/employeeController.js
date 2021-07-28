@@ -5,8 +5,12 @@ const mongoose = require("mongoose");
 const User = require("../models/users");
 const ActiveSession = require("../models/activeSession");
 
-exports.getAllEmployees = (req, res) => {
-  const { filterBy, sortBy } = req.query;
+exports.getAllEmployees = async (req, res) => {
+  const { filterBy, sortBy, page = 0, limit = 20 } = req.query;
+
+  const modelPage = page == 0 ? page : +page - 1;
+  const previousPage = modelPage == 0 ? null : page - 1;
+  const currentPage = +modelPage + 1;
 
   console.log(req.query);
 
@@ -26,18 +30,35 @@ exports.getAllEmployees = (req, res) => {
     sortValue[sortBy] = 1;
   }
 
-  User.find(
+  const user = await User.find(
     filter,
-    "_id firstName lastName email phoneNumber userType storeName warehouseId",
-    { sort: sortValue },
-    function (err, users) {
-      if (err) {
-        return res.json({ success: false, error: err });
-      }
+    "_id firstName lastName email phoneNumber userType storeName warehouseId"
+  )
+    .sort(sortValue)
+    .skip(modelPage * limit)
+    .limit(limit);
+  if (!user) {
+    return res.json({ success: false, message: "Could not fetch data" });
+  }
 
-      return res.json({ success: true, employees: users });
-    }
-  );
+  let userCount = await User.find().countDocuments();
+
+  const nextPage =
+    Math.ceil(userCount / limit) - currentPage > 0 ? +currentPage + 1 : null;
+
+  const totalPages = Math.round(userCount / 20);
+
+  return res.status(200).json({
+    success: true,
+    data: user,
+    paginationData: {
+      currentPage,
+      nextPage,
+      previousPage,
+      itemCount: userCount,
+      totalPages,
+    },
+  });
 };
 
 exports.getEmployee = (req, res) => {
