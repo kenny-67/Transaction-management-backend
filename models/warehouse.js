@@ -4,8 +4,8 @@ const mongoose = require("mongoose");
 const warehouseSchema = mongoose.Schema({
   //type
   _id: mongoose.Schema.Types.ObjectId,
-  warehouseName: {type: String, required: true},
+  warehouseName: { type: String, required: true },
   address: { type: String, required: true },
 });
 
-module.exports = mongoose.model("Warehouse", warehouseSchema);
+module.exports = mongoose.model("Warehouse", warehouseSchema, "Warehouse");

@@ -11,7 +11,7 @@ const {
 
 router.post("/create", checkAuth, createOrder);
 router.get("/confirm", confirmPayment);
-router.get("/", getOrders);
+router.get("/", checkAuth, getOrders);
 router.get("/:id", getOrder);
 
 module.exports = router;

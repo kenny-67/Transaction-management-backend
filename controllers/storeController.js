@@ -47,7 +47,7 @@ exports.getStore = (req, res) => {
 };
 
 exports.createStore = (req, res) => {
-  const { name, address } = req.body;
+  const { name, address, email } = req.body;
 
   Store.findOne({ StoreName: name }).then((store) => {
     if (store) {
@@ -56,7 +56,7 @@ exports.createStore = (req, res) => {
         .json({ success: false, msg: "Store name already exist" });
     }
     Store.create(
-      { _id: new mongoose.Types.ObjectId(), storeName: name, address },
+      { _id: new mongoose.Types.ObjectId(), storeName: name, address, email },
       (err, store) => {
         if (err) {
           console.log(err);
@@ -65,7 +65,7 @@ exports.createStore = (req, res) => {
         return res.status(201).json({
           success: true,
           msg: "Store created successfully",
-          storeId: Store._id,
+          storeId: store._id,
         });
       }
     );

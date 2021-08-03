@@ -281,6 +281,8 @@ exports.confirmPayment = async (req, res) => {
 exports.getOrders = async (req, res) => {
   const { status, page = 0, limit = 20 } = req.query;
 
+  const { isAdmin, id } = req.userData;
+
   const modelPage = page == 0 ? page : +page - 1;
   const previousPage = modelPage == 0 ? null : page - 1;
   const currentPage = +modelPage + 1;
@@ -290,34 +292,61 @@ exports.getOrders = async (req, res) => {
     query.status = { $in: status };
   }
 
-  console.log(query);
+  if (isAdmin) {
+    const order = await Order.find(
+      query,
+      "_id userId total amountPaid status date"
+    )
+      .sort({ date: "desc" })
+      .skip(modelPage * limit)
+      .limit(limit);
 
-  const order = await Order.find(
-    query,
-    "_id userId total amountPaid status date"
-  )
-    .sort({ date: "desc" })
-    .skip(modelPage * limit)
-    .limit(limit);
+    let orderCount = await Order.find().countDocuments();
 
-  let orderCount = await Order.find().countDocuments();
+    const nextPage =
+      Math.ceil(orderCount / limit) - currentPage > 0 ? +currentPage + 1 : null;
 
-  const nextPage =
-    Math.ceil(orderCount / limit) - currentPage > 0 ? +currentPage + 1 : null;
+    const totalPages = Math.round(orderCount / 20);
 
-  const totalPages = Math.round(orderCount / 20);
+    return res.status(200).json({
+      success: true,
+      data: order,
+      paginationData: {
+        currentPage,
+        nextPage,
+        previousPage,
+        itemCount: orderCount,
+        totalPages,
+      },
+    });
+  } else {
+    const order = await Order.find(
+      { userId: id, ...query },
+      "_id userId total amountPaid status date"
+    )
+      .sort({ date: "desc" })
+      .skip(modelPage * limit)
+      .limit(limit);
 
-  return res.status(200).json({
-    success: true,
-    data: order,
-    paginationData: {
-      currentPage,
-      nextPage,
-      previousPage,
-      itemCount: orderCount,
-      totalPages,
-    },
-  });
+    let orderCount = await Order.find({ userId: id }).countDocuments();
+
+    const nextPage =
+      Math.ceil(orderCount / limit) - currentPage > 0 ? +currentPage + 1 : null;
+
+    const totalPages = Math.round(orderCount / 20);
+
+    return res.status(200).json({
+      success: true,
+      data: order,
+      paginationData: {
+        currentPage,
+        nextPage,
+        previousPage,
+        itemCount: orderCount,
+        totalPages,
+      },
+    });
+  }
 };
 
 exports.getOrder = async (req, res) => {

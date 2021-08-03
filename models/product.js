@@ -14,7 +14,7 @@ const productSchema = mongoose.Schema({
     required: true,
   },
   createdAt: { type: Date, required: true },
-  updatedAt: { type: Date, required: true },
+  updatedAt: { type: Date, required: false },
 });
 
 module.exports = mongoose.model("Product", productSchema);
