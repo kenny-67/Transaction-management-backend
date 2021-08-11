@@ -22,14 +22,27 @@ const debtRoutes = require("./routes/debt");
 
 // Connect to MongoDB
 mongoose
-  .connect("mongodb://localhost:27017/kenStores", {
-    useNewUrlParser: true,
-    useFindAndModify: false,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  })
+  .connect(
+    `mongodb+srv://kenny:${process.env.MONGO_PASSWORD}@cluster0.qwpwt.mongodb.net/God's-will-supermarket?retryWrites=true&w=majority`,
+    {
+      useNewUrlParser: true,
+      useFindAndModify: false,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+    }
+  )
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log(err));
+
+// mongoose
+//   .connect("mongodb://localhost:27017/kenStores", {
+//     useNewUrlParser: true,
+//     useFindAndModify: false,
+//     useUnifiedTopology: true,
+//     useCreateIndex: true,
+//   })
+//   .then(() => console.log("MongoDB Connected"))
+//   .catch((err) => console.log(err));
 
 //initializing cors
 app.use(cors());

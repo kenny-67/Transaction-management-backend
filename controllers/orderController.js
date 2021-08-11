@@ -17,14 +17,7 @@ exports.createOrder = async (req, res) => {
     customerDetail,
     orderType,
   } = req.body;
-  console.log(
-    orderDetails,
-    total,
-    redirectURL,
-    amountPaid,
-    customerDetail,
-    orderType
-  );
+
   const { id } = req.userData;
 
   const orderId = new mongoose.Types.ObjectId();
